@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji Flashcards</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --card-back-bg: #fafafa;
+            --text: #1f2937;
+            --text-muted: #4b5563;
+            --success: #10b981;
+            --border: #e5e7eb;
+            --border-hover: #d1d5db;
+            --input-bg: #ffffff;
+        }
+        
+        [data-theme="dark"] {
+            --primary: #60a5fa;
+            --bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --card-back-bg: #222222;
+            --text: #f3f4f6;
+            --text-muted: #9ca3af;
+            --success: #34d399;
+            --border: #404040;
+            --border-hover: #525252;
+            --input-bg: #3f3f46;
+        }
+
+        [data-theme="matcha"] {
+            --primary: #5d704d;
+            --bg: #e2e8d3;
+            --card-bg: #f1f5e8;
+            --card-back-bg: #e8ecd9;
+            --text: #2d3a24;
+            --text-muted: #4f5e42;
+            --success: #4b834b;
+            --border: #d4dcc5;
+            --border-hover: #c5d0b2;
+            --input-bg: #ffffff;
+        }
+
+        [data-theme="steam"] {
+            --primary: #a3b19b;
+            --bg: #4c5844;
+            --card-bg: #5e6a55;
+            --card-back-bg: #55604d;
+            --text: #eef1ea;
+            --text-muted: #d0d7ca;
+            --success: #709d70;
+            --border: #6d7b63;
+            --border-hover: #7f8c75;
+            --input-bg: #6d7b63;
+        }
+
+        [data-theme="sakura"] {
+            --primary: #db7093;
+            --bg: #fce0ea;
+            --card-bg: #fff0f5;
+            --card-back-bg: #f9e6ed;
+            --text: #5c3041;
+            --text-muted: #8c5b6e;
+            --success: #c45b7e;
+            --border: #f5cddb;
+            --border-hover: #efbad0;
+            --input-bg: #ffffff;
+        }
+
+        [data-theme="oyasumi"] {
+            --primary: #7e92b8;
+            --bg: #1e222b;
+            --card-bg: #292e3a;
+            --card-back-bg: #222630;
+            --text: #c8d1e0;
+            --text-muted: #8b9bb4;
+            --success: #5e8a75;
+            --border: #3b4252;
+            --border-hover: #4c566a;
+            --input-bg: #3b4252;
+        }
+
+        [data-theme="coffee"] {
+            --primary: #c19a8a;
+            --bg: #4a3831;
+            --card-bg: #5c473f;
+            --card-back-bg: #523f38;
+            --text: #e8dcd8;
+            --text-muted: #baa8a1;
+            --success: #a07d6f;
+            --border: #755f56;
+            --border-hover: #8a7369;
+            --input-bg: #755f56;
+        }
+
+        [data-theme="mikan"] {
+            --primary: #e88e5d;
+            --bg: #f7dfd2;
+            --card-bg: #fff2ec;
+            --card-back-bg: #fae8df;
+            --text: #5c3e2e;
+            --text-muted: #8a6552;
+            --success: #d17543;
+            --border: #efd0c0;
+            --border-hover: #e8c2b0;
+            --input-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            letter-spacing: 0.02em;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            padding-top: 60px;
+            transition: background-color 0.3s, color 0.3s;
+            text-transform: lowercase;
+        }
+        #app {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            transition: background-color 0.3s, border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        button, .btn-like {
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: lowercase;
+            font-size: 14px;
+        }
+        .primary-btn { background: var(--primary); color: white; flex: 1;}
+        .primary-btn:hover { opacity: 0.9; }
+        .primary-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 1; }
+        
+        .secondary-btn { background: var(--border); color: var(--text); flex: 1;}
+        .secondary-btn:hover { background: var(--border-hover); }
+        .secondary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .settings-trigger {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .settings-trigger:hover { background: var(--border); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        .modal {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.5em; text-transform: lowercase; font-weight: normal;}
+        .close-btn {
+            background: transparent;
+            color: var(--text);
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 1.5em;
+        }
+        .close-btn:hover { background: var(--border); }
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .theme-btn {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+        .theme-btn.active {
+            border-color: var(--primary);
+            transform: scale(0.96);
+            box-shadow: 0 0 0 2px var(--bg);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tabs button {
+            background: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            flex: 1;
+        }
+        .tabs button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            background-color: var(--input-bg);
+            color: var(--text);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            font-family: inherit;
+            text-transform: lowercase;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        input::placeholder {
+            color: var(--text);
+            opacity: 0.8;
+            text-transform: lowercase;
+        }
+
+        .drawing-pad {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .canvas-wrapper {
+            position: relative;
+            background: var(--card-back-bg);
+            border: 1px dashed var(--border-hover);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        canvas {
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .clear-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .clear-btn:hover { background: var(--border); color: var(--text); }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            /* Hide scrollbar for Chrome, Safari and Opera */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .search-results::-webkit-scrollbar {
+            display: none;
+        }
+
+        .search-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background-color: var(--border); }
+        .search-item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        .search-item span.kanji { 
+            font-size: 1.8em; 
+            font-weight: bold; 
+            min-width: 40px;
+            text-align: center;
+            text-transform: none;
+        }
+        .search-item span.meanings {
+            font-size: 0.95em;
+            color: var(--text-muted);
+        }
+        .indicator {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background-color: var(--input-bg);
+        }
+        .indicator.filled {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+        .indicator svg {
+            display: none;
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+        .indicator.filled svg {
+            display: block;
+        }
+        
+        .deck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .deck-header h2 { margin: 0; text-transform: lowercase; font-size: 1.5em; font-weight: normal; }
+        .deck-count { font-weight: normal; color: var(--text-muted); }
+        
+        .scene {
+            width: 100%;
+            height: 350px;
+            perspective: 600px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .card {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            position: relative;
+        }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card__face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+        }
+        .card__face--front { font-size: 8em; font-weight: bold; text-transform: none; }
+        .card__face--back {
+            transform: rotateY(180deg);
+            background: var(--card-back-bg);
+            overflow-y: auto;
+            /* Hide scrollbar for Chrome, Safari and Opera */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        .card__face--back::-webkit-scrollbar {
+            display: none;
+        }
+
+        .card__face--back h3 { margin: 0 0 15px 0; font-size: 1.6em; color: var(--primary); font-weight: normal; }
+        .card__face--back p { margin: 8px 0; font-size: 1.1em;}
+        .readings { color: var(--text-muted); }
+        .readings strong { color: var(--text); font-weight: normal; text-transform: none; }
+        
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s, background 0.2s, transform 0.2s;
+            z-index: 10;
+        }
+        .nav-arrow:hover { 
+            background: var(--border); 
+            transform: translateY(-50%) scale(1.05);
+        }
+        .nav-arrow:active { transform: translateY(-50%) scale(0.95); }
+        .nav-arrow.left { left: 10px; }
+        .nav-arrow.right { right: 10px; }
+
+        .star-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: var(--border-hover);
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s, color 0.2s;
+            z-index: 10;
+        }
+        .scene:hover .nav-arrow,
+        .scene:hover .star-btn { opacity: 1; }
+        .star-btn:hover { transform: scale(1.15); color: var(--primary); }
+        .star-btn.is-starred { color: var(--primary); opacity: 1; }
+
+        .list-star-btn {
+            background: transparent;
+            border: none;
+            color: var(--border-hover);
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+        .list-star-btn:hover { transform: scale(1.15); color: var(--primary); }
+        .list-star-btn.is-starred { color: var(--primary); }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .empty-state {
+            padding: 15px; 
+            text-align: center; 
+            color: var(--text-muted); 
+            font-size: 0.95em;
+        }
+
+        .list-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .list-selection-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .list-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .list-btn.uppercase-text {
+            text-transform: uppercase;
+        }
+
+        .list-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .list-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .list-btn.full-width {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div v-if="settingsOpen" class="modal-overlay" @click.self="settingsOpen = false">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>settings</h2>
+                <button class="close-btn" @click="settingsOpen = false">&times;</button>
+            </div>
+            <div class="modal-content">
+                <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1em; color: var(--text-muted); text-transform: lowercase; font-weight: normal;">themes</h3>
+                <div class="theme-grid">
+                    <button v-for="t in themes" :key="t.id"
+                            class="theme-btn"
+                            :class="{ active: currentTheme === t.id }"
+                            :style="{ background: t.color, color: t.textColor }"
+                            @click="setTheme(t.id)">
+                        {{ t.name }}
+                    </button>
+                </div>
+
+                <div style="margin-top: 25px; margin-bottom: 15px;">
+                    <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1em; color: var(--text-muted); text-transform: lowercase; font-weight: normal;">active list</h3>
+                    <div class="list-selection">
+                        <button class="list-btn full-width" :class="{ active: activeList === 'study' }" @click="setActiveList('study')">study deck</button>
+                        <div class="list-selection-row">
+                            <button class="list-btn" :class="{ active: activeList === 'starred' }" @click="setActiveList('starred')">
+                                 <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" :fill="activeList === 'starred' ? 'currentColor' : 'none'" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </button>
+                            <button class="list-btn uppercase-text" :class="{ active: activeList === 'n5' }" @click="setActiveList('n5')">N5</button>
+                            <button class="list-btn uppercase-text" :class="{ active: activeList === 'n4' }" @click="setActiveList('n4')">N4</button>
+                            <button class="list-btn uppercase-text" :class="{ active: activeList === 'n3' }" @click="setActiveList('n3')">N3</button>
+                            <button class="list-btn uppercase-text" :class="{ active: activeList === 'n2' }" @click="setActiveList('n2')">N2</button>
+                            <button class="list-btn uppercase-text" :class="{ active: activeList === 'n1' }" @click="setActiveList('n1')">N1</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <label class="secondary-btn btn-like" style="cursor: pointer; margin-bottom: 0;">
+                        <input type="file" @change="importDeck" accept=".json" style="display: none;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        import deck
+                    </label>
+                    <button class="secondary-btn" @click="exportDeck">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        export deck
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="settings-trigger" @click="settingsOpen = true" aria-label="settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+    <div class="panel" v-if="currentTab === 'search'">
+        <div class="deck-header">
+            <h2>manage deck</h2>
+            <button class="secondary-btn" @click="currentTab = 'study'" style="flex: 0; white-space: nowrap;">study deck</button>
+        </div>
+
+        <div class="tabs">
+            <button :class="{ active: viewMode === 'all' }" @click="viewMode = 'all'">search</button>
+            <button :class="{ active: viewMode === 'active' }" @click="viewMode = 'active'">active deck ({{ studyDeck.length }})</button>
+        </div>
+
+        <input type="text" v-model="searchQuery" :placeholder="viewMode === 'all' ? 'search by meaning or draw below...' : 'search your active deck'">
+        
+        <div v-show="viewMode === 'all'" class="drawing-pad">
+            <div class="canvas-wrapper">
+                <canvas ref="canvasRef" width="250" height="250"
+                    @mousedown="startDrawing" @mousemove="draw" @mouseup="stopDrawing" @mouseleave="stopDrawing"
+                    @touchstart.prevent="startDrawing" @touchmove.prevent="draw" @touchend.prevent="stopDrawing">
+                </canvas>
+                <button class="clear-btn" @click="clearCanvas" aria-label="clear drawing">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="search-results" v-if="filteredKanji.length > 0">
+            <div 
+                class="search-item" 
+                v-for="item in filteredKanji" 
+                :key="item.kanji"
+                @click="toggleDeck(item)"
+            >
+                <div class="search-item-info">
+                    <span class="kanji">{{ item.kanji }}</span>
+                    <span class="meanings">{{ item.data.meanings.join(', ') }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="list-star-btn" 
+                            :class="{ 'is-starred': starredKanji.includes(item.kanji) }" 
+                            @click.stop="toggleStar(item.kanji)" 
+                            v-if="isInDeck(item.kanji)"
+                            aria-label="toggle star">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" :fill="starredKanji.includes(item.kanji) ? 'currentColor' : 'none'">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </button>
+                    <div class="indicator" :class="{ 'filled': isInDeck(item.kanji) }">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else-if="viewMode === 'active' && studyDeck.length === 0" class="empty-state">
+            your active deck is empty. switch to "search" to add kanji.
+        </div>
+        <div v-else-if="(searchQuery || predictions.length > 0) && filteredKanji.length === 0" class="empty-state">
+            no results found.
+        </div>
+    </div>
+
+    <div class="panel" v-if="currentTab === 'study'">
+        <div class="deck-header">
+            <h2 :style="{ textTransform: activeList === 'study' || activeList === 'starred' ? 'lowercase' : 'uppercase' }">{{ activeList === 'study' ? 'study deck' : (activeList === 'starred' ? 'starred kanji' : activeList) }}</h2>
+            <div class="deck-count" v-if="displayedDeck.length > 0">
+                {{ currentIndex + 1 }}/{{ displayedDeck.length }}
+            </div>
+        </div>
+
+        <div v-if="displayedDeck.length > 0" style="display: flex; flex-direction: column; flex-grow: 1;">
+            <div class="scene">
+                <div class="card" :class="{ 'is-flipped': isFlipped }" @click="flipCard">
+                    <div class="card__face card__face--front">
+                        {{ currentCard.kanji }}
+                    </div>
+                    <div class="card__face card__face--back">
+                        <h3>{{ currentCard.data.meanings.join(', ') }}</h3>
+                        <p class="readings" v-if="currentCard.data.readings_kun && currentCard.data.readings_kun.length">
+                            <strong>kun:</strong> {{ currentCard.data.readings_kun.join(', ') }}
+                        </p>
+                        <p class="readings" v-if="currentCard.data.readings_on && currentCard.data.readings_on.length">
+                            <strong>on:</strong> {{ currentCard.data.readings_on.join(', ') }}
+                        </p>
+                    </div>
+                </div>
+
+                <button class="star-btn" :class="{ 'is-starred': starredKanji.includes(currentCard.kanji) }" @click.stop="toggleStar(currentCard.kanji)" aria-label="star kanji">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" :fill="starredKanji.includes(currentCard.kanji) ? 'currentColor' : 'none'" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                </button>
+
+                <button class="nav-arrow left" @click.stop="prevCard" v-show="currentIndex > 0" aria-label="previous">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+                </button>
+                <button class="nav-arrow right" @click.stop="nextCard" v-show="currentIndex < displayedDeck.length - 1" aria-label="next">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                </button>
+            </div>
+
+            <div class="controls" style="margin-bottom: 10px;">
+                <button class="secondary-btn" @click="currentTab = 'search'" aria-label="search kanji">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                <button class="secondary-btn" @click="shuffleDeck" :disabled="displayedDeck.length < 2" aria-label="shuffle">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
+                </button>
+            </div>
+            
+        </div>
+        <div v-else class="empty-state" style="margin-top: 20px; flex-grow: 1;">
+            <template v-if="activeList === 'starred'">
+                you haven't starred any kanji yet.<br><br>
+                star kanji while studying or searching to see them here.
+            </template>
+            <template v-else>
+                this list is empty.<br><br>
+                <button class="primary-btn" @click="currentTab = 'search'" style="margin-top: 15px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    search kanji to add
+                </button>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+
+    createApp({
+        setup() {
+            const kanjiDatabase = ref({});
+            const searchQuery = ref('');
+            const studyDeck = ref([]);
+            const n5List = ref([]);
+            const n4List = ref([]);
+            const n3List = ref([]);
+            const n2List = ref([]);
+            const n1List = ref([]);
+            const activeList = ref('study');
+            
+            const starredKanji = ref([]);
+            const currentIndex = ref(0);
+            const isFlipped = ref(false);
+            const viewMode = ref('all'); 
+            const currentTab = ref('study'); 
+            const settingsOpen = ref(false);
+            const currentTheme = ref('light');
+
+            const canvasRef = ref(null);
+            let ctx = null;
+            const isDrawing = ref(false);
+            const strokes = ref([]);
+            let currentStroke = {x: [], y: []};
+            const predictions = ref([]);
+            let fetchTimeout = null;
+
+            const themes = [
+                { id: 'light', name: 'light', color: '#ffffff', textColor: '#1f2937' },
+                { id: 'dark', name: 'dark', color: '#2d2d2d', textColor: '#f3f4f6' },
+                { id: 'matcha', name: 'まっちゃ', color: '#f1f5e8', textColor: '#2d3a24' },
+                { id: 'steam', name: 'スチーム', color: '#5e6a55', textColor: '#eef1ea' },
+                { id: 'sakura', name: 'さくら', color: '#fff0f5', textColor: '#5c3041' },
+                { id: 'oyasumi', name: 'おやすみ', color: '#292e3a', textColor: '#c8d1e0' },
+                { id: 'coffee', name: 'コーヒー', color: '#5c473f', textColor: '#e8dcd8' },
+                { id: 'mikan', name: 'みかん', color: '#fff2ec', textColor: '#5c3e2e' }
+            ];
+
+            const activeDeck = computed(() => {
+                switch(activeList.value) {
+                    case 'n5': return n5List.value;
+                    case 'n4': return n4List.value;
+                    case 'n3': return n3List.value;
+                    case 'n2': return n2List.value;
+                    case 'n1': return n1List.value;
+                    case 'starred': 
+                        // Instead of filtering all kanji, we filter the kanji database to only show starred items.
+                        const allStarred = [];
+                        for (const kanji of starredKanji.value) {
+                            if (kanjiDatabase.value[kanji]) {
+                                allStarred.push({ kanji: kanji, data: kanjiDatabase.value[kanji] });
+                            }
+                        }
+                        return allStarred;
+                    default: return studyDeck.value;
+                }
+            });
+
+            const setActiveList = (listName) => {
+                activeList.value = listName;
+                currentIndex.value = 0;
+                isFlipped.value = false;
+                localStorage.setItem('activeKanjiList', listName);
+            };
+
+            const parseCSV = (csvText) => {
+                const lines = csvText.split('\n');
+                const words = [];
+                // Skip header line
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Basic CSV parsing, assuming expression is second column (index 1)
+                    // The new CSV format seems to be ID, Kanji, Onyomi, Kunyomi, Meaning
+                    const columns = line.split(',');
+                    if (columns.length > 1) {
+                        const expression = columns[1];
+                        // Extract only kanji characters
+                        for (const char of expression) {
+                            if (kanjiDatabase.value[char] && !words.find(w => w.kanji === char)) {
+                                words.push({ kanji: char, data: kanjiDatabase.value[char] });
+                            }
+                        }
+                    }
+                }
+                return words;
+            };
+
+            const handleKeydown = (e) => {
+                if (currentTab.value !== 'study' || displayedDeck.value.length === 0) return;
+                
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                if (e.key === 'ArrowRight') {
+                    nextCard();
+                } else if (e.key === 'ArrowLeft') {
+                    prevCard();
+                } else if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    flipCard();
+                }
+            };
+
+            const initCanvas = () => {
+                if (canvasRef.value) {
+                    ctx = canvasRef.value.getContext('2d');
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f2937';
+                }
+            };
+
+            const redrawCanvas = () => {
+                if (!ctx || !canvasRef.value) return;
+                ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+                strokes.value.forEach(stroke => {
+                    const xArr = stroke[0];
+                    const yArr = stroke[1];
+                    if (xArr.length === 0) return;
+                    ctx.beginPath();
+                    ctx.moveTo(xArr[0], yArr[0]);
+                    for (let i = 1; i < xArr.length; i++) {
+                        ctx.lineTo(xArr[i], yArr[i]);
+                    }
+                    ctx.stroke();
+                });
+            };
+
+            watch(viewMode, (newVal) => {
+                if (newVal === 'all') {
+                    setTimeout(() => { initCanvas(); redrawCanvas(); }, 50);
+                }
+            });
+
+            const displayedDeck = computed(() => {
+                return activeDeck.value;
+            });
+            
+            watch(displayedDeck, (newDeck) => {
+                if (currentIndex.value >= newDeck.length && newDeck.length > 0) {
+                    currentIndex.value = Math.max(0, newDeck.length - 1);
+                    isFlipped.value = false;
+                }
+            });
+
+            onMounted(async () => {
+                const savedTheme = localStorage.getItem('kanjiFlashcardTheme');
+                if (savedTheme) {
+                    setTheme(savedTheme);
+                } else {
+                    setTheme('light');
+                }
+
+                const savedStars = localStorage.getItem('starredKanji');
+                if (savedStars) {
+                    starredKanji.value = JSON.parse(savedStars);
+                }
+                
+                const savedActiveList = localStorage.getItem('activeKanjiList');
+                if (savedActiveList) {
+                    activeList.value = savedActiveList;
+                }
+
+                window.addEventListener('keydown', handleKeydown);
+                setTimeout(initCanvas, 100);
+
+                try {
+                    const response = await fetch('kanji.json');
+                    kanjiDatabase.value = await response.json();
+                    
+                    const savedDeck = localStorage.getItem('studyDeck');
+                    if (savedDeck) {
+                        studyDeck.value = JSON.parse(savedDeck);
+                        if (studyDeck.value.length === 0 && activeList.value === 'study') {
+                            currentTab.value = 'search';
+                        }
+                    } else if (activeList.value === 'study') {
+                        currentTab.value = 'search';
+                    }
+                    
+                    // Load CSV lists
+                    const files = ['n5.csv', 'n4.csv', 'n3.csv', 'n2.csv', 'n1.csv'];
+                    for (const file of files) {
+                        try {
+                            const res = await fetch(file);
+                            const text = await res.text();
+                            const parsed = parseCSV(text);
+                            if (file === 'n5.csv') n5List.value = parsed;
+                            if (file === 'n4.csv') n4List.value = parsed;
+                            if (file === 'n3.csv') n3List.value = parsed;
+                            if (file === 'n2.csv') n2List.value = parsed;
+                            if (file === 'n1.csv') n1List.value = parsed;
+                        } catch (e) {
+                            console.error(`Error loading ${file}:`, e);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error("Error loading kanji.json. Make sure you are running a local server.", error);
+                }
+            });
+
+            onUnmounted(() => {
+                window.removeEventListener('keydown', handleKeydown);
+            });
+
+            const setTheme = (themeId) => {
+                currentTheme.value = themeId;
+                document.documentElement.setAttribute('data-theme', themeId);
+                localStorage.setItem('kanjiFlashcardTheme', themeId);
+                setTimeout(() => {
+                    if (ctx) {
+                        ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f2937';
+                        redrawCanvas();
+                    }
+                }, 50);
+            };
+
+            const getCoordinates = (e) => {
+                const rect = canvasRef.value.getBoundingClientRect();
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                const scaleX = canvasRef.value.width / rect.width;
+                const scaleY = canvasRef.value.height / rect.height;
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
+                };
+            };
+
+            const startDrawing = (e) => {
+                predictions.value = [];
+                searchQuery.value = '';
+                if (!ctx) initCanvas();
+                isDrawing.value = true;
+                const { x, y } = getCoordinates(e);
+                currentStroke = { x: [x], y: [y] };
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            };
+
+            const draw = (e) => {
+                if (!isDrawing.value) return;
+                const { x, y } = getCoordinates(e);
+                currentStroke.x.push(x);
+                currentStroke.y.push(y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            };
+
+            const stopDrawing = (e) => {
+                if (!isDrawing.value) return;
+                isDrawing.value = false;
+                if (currentStroke.x.length > 0) {
+                    strokes.value.push([currentStroke.x, currentStroke.y, []]);
+                    fetchPredictions();
+                }
+            };
+
+            const clearCanvas = () => {
+                strokes.value = [];
+                predictions.value = [];
+                if (ctx && canvasRef.value) {
+                    ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+                }
+            };
+
+            const fetchPredictions = () => {
+                clearTimeout(fetchTimeout);
+                fetchTimeout = setTimeout(async () => {
+                    if (strokes.value.length === 0) {
+                        predictions.value = [];
+                        return;
+                    }
+                    const data = {
+                        "options": "enable_pre_space",
+                        "requests": [{
+                            "writing_guide": {
+                                "width": canvasRef.value.width,
+                                "height": canvasRef.value.height
+                            },
+                            "ink": strokes.value,
+                            "language": "ja"
+                        }]
+                    };
+                    try {
+                        const res = await fetch('https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=demopage', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        const json = await res.json();
+                        if (json[0] === 'SUCCESS') {
+                            predictions.value = json[1][0][1].slice(0, 6);
+                        }
+                    } catch(e) { console.error(e); }
+                }, 400); 
+            };
+
+            const filteredKanji = computed(() => {
+                if (viewMode.value === 'all' && predictions.value.length > 0) {
+                    const results = [];
+                    for (const char of predictions.value) {
+                        if (kanjiDatabase.value[char]) {
+                            results.push({ kanji: char, data: kanjiDatabase.value[char] });
+                        }
+                    }
+                    return results;
+                }
+
+                const query = searchQuery.value.toLowerCase().trim();
+                
+                let sourceData = [];
+                if (viewMode.value === 'active') {
+                    sourceData = studyDeck.value.map(item => [item.kanji, item.data]);
+                } else {
+                    sourceData = Object.entries(kanjiDatabase.value);
+                }
+
+                if (!query) {
+                    if (viewMode.value === 'active') return studyDeck.value;
+                    return [];
+                }
+                
+                let exactMatches = [];
+                let partialMatches = [];
+                
+                for (const [kanji, data] of sourceData) {
+                    const isKanjiMatch = kanji === query;
+                    let isExactMatch = false;
+                    let isPartialMatch = false;
+
+                    if (data.meanings) {
+                        isExactMatch = data.meanings.some(m => m.toLowerCase() === query);
+                        if (!isExactMatch) {
+                            isPartialMatch = data.meanings.some(m => m.toLowerCase().includes(query));
+                        }
+                    }
+
+                    if (isKanjiMatch || isExactMatch) {
+                        exactMatches.push({ kanji, data });
+                    } else if (isPartialMatch && partialMatches.length < 50) {
+                        partialMatches.push({ kanji, data });
+                    }
+                }
+                
+                return [...exactMatches, ...partialMatches].slice(0, 50);
+            });
+
+            const currentCard = computed(() => {
+                return displayedDeck.value[currentIndex.value] || {};
+            });
+
+            const isInDeck = (kanji) => {
+                return studyDeck.value.some(c => c.kanji === kanji);
+            };
+
+            const saveDeck = () => {
+                localStorage.setItem('studyDeck', JSON.stringify(studyDeck.value));
+            };
+            
+            const saveStars = () => {
+                localStorage.setItem('starredKanji', JSON.stringify(starredKanji.value));
+            };
+
+            const toggleDeck = (item) => {
+                const index = studyDeck.value.findIndex(c => c.kanji === item.kanji);
+                if (index === -1) {
+                    studyDeck.value.push(item);
+                } else {
+                    studyDeck.value.splice(index, 1);
+                    if (activeList.value === 'study' && currentIndex.value >= displayedDeck.value.length && currentIndex.value > 0) {
+                        currentIndex.value--;
+                    }
+                    isFlipped.value = false;
+                }
+                saveDeck();
+            };
+            
+            const toggleStar = (kanji) => {
+                if (!kanji) return;
+                const index = starredKanji.value.indexOf(kanji);
+                if (index === -1) {
+                    starredKanji.value.push(kanji);
+                } else {
+                    starredKanji.value.splice(index, 1);
+                    // Remove from list if we are currently looking at the starred list
+                    if (activeList.value === 'starred') {
+                         if (currentIndex.value >= displayedDeck.value.length && currentIndex.value > 0) {
+                             currentIndex.value--;
+                         }
+                    }
+                }
+                saveStars();
+            };
+
+            const exportDeck = () => {
+                const data = {
+                    deck: studyDeck.value,
+                    starredKanji: starredKanji.value
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'kanji_deck.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const importDeck = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.deck && Array.isArray(data.deck)) {
+                            studyDeck.value = data.deck;
+                            saveDeck();
+                        }
+                        if (data.starredKanji && Array.isArray(data.starredKanji)) {
+                            starredKanji.value = data.starredKanji;
+                            saveStars();
+                        }
+                        currentIndex.value = 0;
+                        isFlipped.value = false;
+                        // Reset file input so the same file can be selected again
+                        event.target.value = '';
+                    } catch (error) {
+                        console.error('Error parsing imported deck file:', error);
+                        alert('Error importing deck. Please ensure it is a valid JSON file.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const shuffleDeck = () => {
+                if (activeDeck.value.length < 2) return;
+                
+                isFlipped.value = false;
+                
+                setTimeout(() => {
+                    let shuffled = [...activeDeck.value];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    if (activeList.value === 'study') {
+                        studyDeck.value = shuffled;
+                        saveDeck();
+                    } else if (activeList.value === 'n5') {
+                        n5List.value = shuffled;
+                    } else if (activeList.value === 'n4') {
+                        n4List.value = shuffled;
+                    } else if (activeList.value === 'n3') {
+                        n3List.value = shuffled;
+                    } else if (activeList.value === 'n2') {
+                        n2List.value = shuffled;
+                    } else if (activeList.value === 'n1') {
+                        n1List.value = shuffled;
+                    } else if (activeList.value === 'starred') {
+                        // For the starred list, we just change the current index to simulate a shuffle
+                        // since we can't easily reorder the computed starred array directly
+                        currentIndex.value = Math.floor(Math.random() * activeDeck.value.length);
+                        return;
+                    }
+                    currentIndex.value = 0;
+                }, 150);
+            };
+
+            const flipCard = () => {
+                isFlipped.value = !isFlipped.value;
+            };
+
+            const nextCard = () => {
+                if (currentIndex.value < displayedDeck.value.length - 1) {
+                    isFlipped.value = false;
+                    setTimeout(() => {
+                        currentIndex.value++;
+                    }, 150); 
+                }
+            };
+
+            const prevCard = () => {
+                if (currentIndex.value > 0) {
+                    isFlipped.value = false;
+                    setTimeout(() => {
+                        currentIndex.value--;
+                    }, 150);
+                }
+            };
+
+            return {
+                searchQuery,
+                filteredKanji,
+                deck: studyDeck,
+                studyDeck,
+                activeDeck,
+                activeList,
+                setActiveList,
+                displayedDeck,
+                starredKanji,
+                currentIndex,
+                currentCard,
+                isFlipped,
+                viewMode,
+                currentTab,
+                settingsOpen,
+                themes,
+                currentTheme,
+                canvasRef,
+                predictions,
+                setTheme,
+                isInDeck,
+                toggleDeck,
+                toggleStar,
+                exportDeck,
+                importDeck,
+                shuffleDeck,
+                flipCard,
+                nextCard,
+                prevCard,
+                startDrawing,
+                draw,
+                stopDrawing,
+                clearCanvas
+            };
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>
