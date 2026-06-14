@@ -410,6 +410,7 @@
             transform-style: preserve-3d;
             cursor: pointer;
             position: relative;
+            -webkit-tap-highlight-color: transparent;
         }
         .card.is-flipped { transform: rotateY(180deg); }
         .card__face {
@@ -474,6 +475,12 @@
         .nav-arrow:active { transform: translateY(-50%) scale(0.95); }
         .nav-arrow.left { left: 10px; }
         .nav-arrow.right { right: 10px; }
+        .nav-arrow:disabled { cursor: not-allowed; }
+        .scene:hover .nav-arrow:disabled { opacity: 0.3; }
+        .scene:hover .nav-arrow:disabled:hover { 
+            background: var(--card-bg); 
+            transform: translateY(-50%); 
+        }
 
         .star-btn {
             position: absolute;
@@ -505,16 +512,24 @@
             .desktop-star { display: none; }
             .mobile-star { display: block; }
             
-            .scene { margin-bottom: 80px; }
+            .scene { margin-bottom: 20px; }
             .nav-arrow {
+                position: fixed !important;
                 top: auto !important;
-                bottom: -65px !important;
+                bottom: 20px !important;
                 transform: none !important;
                 opacity: 1 !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+                z-index: 100;
             }
-            .nav-arrow.left { left: calc(50% - 65px) !important; }
-            .nav-arrow.right { right: calc(50% - 65px) !important; }
+            .nav-arrow.left { left: calc(50% - 85px) !important; }
+            .nav-arrow.right { right: calc(50% - 85px) !important; }
             .nav-arrow:active { transform: scale(0.95) !important; }
+            .nav-arrow:disabled {
+                opacity: 0.3 !important;
+                transform: none !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+            }
         }
 
         .list-star-btn {
@@ -760,10 +775,10 @@
                     </svg>
                 </button>
 
-                <button class="nav-arrow left" @click.stop="prevCard" v-show="currentIndex > 0" aria-label="previous">
+                <button class="nav-arrow left" @click.stop="prevCard" :disabled="currentIndex === 0" aria-label="previous">
                     <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                 </button>
-                <button class="nav-arrow right" @click.stop="nextCard" v-show="currentIndex < displayedDeck.length - 1" aria-label="next">
+                <button class="nav-arrow right" @click.stop="nextCard" :disabled="currentIndex >= displayedDeck.length - 1" aria-label="next">
                     <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
                 </button>
             </div>
