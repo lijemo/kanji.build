@@ -772,11 +772,11 @@
                             </svg>
                         </button>
                         <h3>{{ currentCard.data.meanings.join(', ') }}</h3>
-                        <p class="readings" v-if="currentCard.data.readings_kun && currentCard.data.readings_kun.length">
-                            <strong>kun:</strong> {{ currentCard.data.readings_kun.join(', ') }}
-                        </p>
                         <p class="readings" v-if="currentCard.data.readings_on && currentCard.data.readings_on.length">
                             <strong>on:</strong> {{ currentCard.data.readings_on.join(', ') }}
+                        </p>
+                        <p class="readings" v-if="currentCard.data.readings_kun && currentCard.data.readings_kun.length">
+                            <strong>kun:</strong> {{ currentCard.data.readings_kun.join(', ') }}
                         </p>
                     </div>
                 </div>
