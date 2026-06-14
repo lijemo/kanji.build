@@ -1010,7 +1010,7 @@
                 setTimeout(initCanvas, 100);
 
                 try {
-                    const response = await fetch('kanji.json');
+                    const response = await fetch('public/kanji.json');
                     kanjiDatabase.value = await response.json();
                     
                     const savedDeck = localStorage.getItem('studyDeck');
@@ -1026,7 +1026,7 @@
                     const files = ['n5.csv', 'n4.csv', 'n3.csv', 'n2.csv', 'n1.csv'];
                     for (const file of files) {
                         try {
-                            const res = await fetch(file);
+                            const res = await fetch('public/' + file);
                             const text = await res.text();
                             const parsed = parseCSV(text);
                             if (file === 'n5.csv') n5List.value = parsed;
