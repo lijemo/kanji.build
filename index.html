@@ -165,8 +165,8 @@
         .secondary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .settings-trigger {
-            position: absolute;
-            top: 15px;
+            position: fixed;
+            bottom: 20px;
             right: 20px;
             background: var(--card-bg);
             color: var(--text);
@@ -178,8 +178,8 @@
             justify-content: center;
             align-items: center;
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
         }
         .settings-trigger:hover { background: var(--border); }
 
@@ -493,6 +493,30 @@
         .star-btn:hover { transform: scale(1.15); color: var(--primary); }
         .star-btn.is-starred { color: var(--primary); opacity: 1; }
 
+        .mobile-star {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-star { display: none; }
+            .mobile-star { display: block; }
+            
+            .scene { margin-bottom: 80px; }
+            .nav-arrow {
+                top: auto !important;
+                bottom: -65px !important;
+                transform: none !important;
+                opacity: 1 !important;
+            }
+            .nav-arrow.left { left: calc(50% - 65px) !important; }
+            .nav-arrow.right { right: calc(50% - 65px) !important; }
+            .nav-arrow:active { transform: scale(0.95) !important; }
+        }
+
         .list-star-btn {
             background: transparent;
             border: none;
@@ -613,16 +637,16 @@
                         <input type="file" @change="importDeck" accept=".json" style="display: none;">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                         import deck
                     </label>
                     <button class="secondary-btn" @click="exportDeck">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
                         export deck
                     </button>
@@ -710,11 +734,16 @@
 
         <div v-if="displayedDeck.length > 0" style="display: flex; flex-direction: column; flex-grow: 1;">
             <div class="scene">
-                <div class="card" :class="{ 'is-flipped': isFlipped }" @click="flipCard">
+                <div class="card" :class="{ 'is-flipped': isFlipped }" @click="flipCard" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
                     <div class="card__face card__face--front">
                         {{ currentCard.kanji }}
                     </div>
                     <div class="card__face card__face--back">
+                        <button class="star-btn mobile-star" :class="{ 'is-starred': starredKanji.includes(currentCard.kanji) }" @click.stop="toggleStar(currentCard.kanji)" aria-label="star kanji">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" :fill="starredKanji.includes(currentCard.kanji) ? 'currentColor' : 'none'" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </button>
                         <h3>{{ currentCard.data.meanings.join(', ') }}</h3>
                         <p class="readings" v-if="currentCard.data.readings_kun && currentCard.data.readings_kun.length">
                             <strong>kun:</strong> {{ currentCard.data.readings_kun.join(', ') }}
@@ -725,7 +754,7 @@
                     </div>
                 </div>
 
-                <button class="star-btn" :class="{ 'is-starred': starredKanji.includes(currentCard.kanji) }" @click.stop="toggleStar(currentCard.kanji)" aria-label="star kanji">
+                <button class="star-btn desktop-star" :class="{ 'is-starred': starredKanji.includes(currentCard.kanji) }" @click.stop="toggleStar(currentCard.kanji)" aria-label="star kanji">
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" :fill="starredKanji.includes(currentCard.kanji) ? 'currentColor' : 'none'" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                     </svg>
@@ -1261,7 +1290,33 @@
                 }, 150);
             };
 
+            let isSwiping = false;
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            const handleTouchStart = (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                isSwiping = false;
+            };
+
+            const handleTouchEnd = (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const swipeThreshold = 50;
+                if (Math.abs(touchEndX - touchStartX) > swipeThreshold && window.innerWidth <= 768) {
+                    isSwiping = true;
+                    if (touchEndX < touchStartX) {
+                        nextCard();
+                    } else {
+                        prevCard();
+                    }
+                }
+            };
+
             const flipCard = () => {
+                if (isSwiping) {
+                    isSwiping = false;
+                    return;
+                }
                 isFlipped.value = !isFlipped.value;
             };
 
@@ -1313,6 +1368,8 @@
                 flipCard,
                 nextCard,
                 prevCard,
+                handleTouchStart,
+                handleTouchEnd,
                 startDrawing,
                 draw,
                 stopDrawing,
