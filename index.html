@@ -6,7 +6,7 @@
     <title>Kanji Flashcards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="public/favicon.ico">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#f3f4f6">
     <link rel="apple-touch-icon" href="icon.png">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -1060,6 +1060,12 @@
                     if (ctx) {
                         ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f2937';
                         redrawCanvas();
+                    }
+                    
+                    const bgColor = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+                    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                    if (metaThemeColor && bgColor) {
+                        metaThemeColor.setAttribute('content', bgColor);
                     }
                 }, 50);
             };
