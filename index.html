@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kanji.build</title>
+    <title>Kanji Flashcards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="public/favicon.ico">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#f3f4f6">
     <link rel="apple-touch-icon" href="icon.png">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -487,7 +487,6 @@
         .nav-arrow.right { right: 10px; }
         
         .nav-arrow:disabled {
-            opacity: 0.3 !important;
             cursor: not-allowed;
             pointer-events: none;
         }
@@ -507,6 +506,7 @@
         }
         .scene:hover .desktop-arrow:not(:disabled),
         .scene:hover .desktop-star { opacity: 1; }
+        .scene:hover .desktop-arrow:disabled { opacity: 0.3; }
         .star-btn:hover { transform: scale(1.15); color: var(--primary); }
         .star-btn.is-starred { color: var(--primary); opacity: 1; }
 
@@ -538,6 +538,11 @@
 
         .mobile-arrow:active:not(:disabled) {
             transform: scale(0.95) !important;
+        }
+
+        .mobile-arrow:disabled {
+            opacity: 0.3 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
         }
 
         @media (max-width: 768px) {
